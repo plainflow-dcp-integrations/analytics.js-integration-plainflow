@@ -1,8 +1,8 @@
 'use strict';
 
-var Analytics = require('@segment/analytics.js-core').constructor;
+var Analytics = require('@plainflow-dcp/analytics.js-core').constructor;
 var JSON = require('json3');
-var Segment = require('../lib/');
+var Plainflow = require('../lib/');
 var assert = require('proclaim');
 var cookie = require('component-cookie');
 var integration = require('@segment/analytics.js-integration');
@@ -19,8 +19,8 @@ var sinon = require('sinon');
 // this hackery
 var isPhantomJS = (/PhantomJS/).test(window.navigator.userAgent);
 
-describe('Segment.io', function() {
-  var segment;
+describe('Plainflow', function() {
+  var plainflow;
   var analytics;
   var options;
 
@@ -32,14 +32,14 @@ describe('Segment.io', function() {
   });
 
   beforeEach(function() {
-    options = { apiKey: 'oq0vdlg7yi' };
+    options = { apiKey: 'p1ai2f10w' };
     protocol.reset();
     analytics = new Analytics();
-    segment = new Segment(options);
-    analytics.use(Segment);
+    plainflow = new Plainflow(options);
+    analytics.use(Plainflow);
     analytics.use(tester);
-    analytics.add(segment);
-    analytics.assert(Segment.global === window);
+    analytics.add(plainflow);
+    analytics.assert(Plainflow.global === window);
     resetCookies();
   });
 
@@ -47,132 +47,134 @@ describe('Segment.io', function() {
     analytics.restore();
     analytics.reset();
     resetCookies();
-    segment.reset();
+    plainflow.reset();
     sandbox();
   });
 
   function resetCookies() {
-    store('s:context.referrer', null);
-    cookie('s:context.referrer', null, { maxage: -1, path: '/' });
-    store('segment_amp_id', null);
-    cookie('segment_amp_id', null, { maxage: -1, path: '/' });
-    store('seg_xid', null);
-    cookie('seg_xid', null, { maxage: -1, path: '/' });
-    store('seg_xid_fd', null);
-    cookie('seg_xid_fd', null, { maxage: -1, path: '/' });
-    store('seg_xid_ts', null);
-    cookie('seg_xid_ts', null, { maxage: -1, path: '/' });
+    store('pf:context.referrer', null);
+    cookie('pf:context.referrer', null, { maxage: -1, path: '/' });
+    store('plainflow_amp_id', null);
+    cookie('plainflow_amp_id', null, { maxage: -1, path: '/' });
+    store('pfl_xid', null);
+    cookie('pfl_xid', null, { maxage: -1, path: '/' });
+    store('pfl_xid_fd', null);
+    cookie('pfl_xid_fd', null, { maxage: -1, path: '/' });
+    store('pfl_xid_ts', null);
+    cookie('pfl_xid_ts', null, { maxage: -1, path: '/' });
   }
 
   it('should have the right settings', function() {
-    analytics.compare(Segment, integration('Segment.io')
+    analytics.compare(Plainflow, integration('Plainflow')
       .option('apiKey', ''));
   });
 
   it('should always be turned on', function(done) {
     var Analytics = analytics.constructor;
     var ajs = new Analytics();
-    ajs.use(Segment);
-    ajs.initialize({ 'Segment.io': options });
+    ajs.use(Plainflow);
+    // eslint-disable-next-line quote-props
+    ajs.initialize({ 'Plainflow': options });
     ajs.ready(function() {
-      var segment = ajs._integrations['Segment.io'];
-      segment.ontrack = sinon.spy();
+      // eslint-disable-next-line
+      var plainflow = ajs._integrations['Plainflow'];
+      plainflow.ontrack = sinon.spy();
       ajs.track('event', {}, { All: false });
-      assert(segment.ontrack.calledOnce);
+      assert(plainflow.ontrack.calledOnce);
       done();
     });
   });
 
-  describe('Segment.storage()', function() {
+  describe('Plainflow.storage()', function() {
     it('should return cookie() when the protocol isnt file://', function() {
-      analytics.assert(Segment.storage(), cookie);
+      analytics.assert(Plainflow.storage(), cookie);
     });
 
     it('should return store() when the protocol is file://', function() {
-      analytics.assert(Segment.storage(), cookie);
+      analytics.assert(Plainflow.storage(), cookie);
       protocol('file:');
-      analytics.assert(Segment.storage(), store);
+      analytics.assert(Plainflow.storage(), store);
     });
 
     it('should return store() when the protocol is chrome-extension://', function() {
-      analytics.assert(Segment.storage(), cookie);
+      analytics.assert(Plainflow.storage(), cookie);
       protocol('chrome-extension:');
-      analytics.assert(Segment.storage(), store);
+      analytics.assert(Plainflow.storage(), store);
     });
   });
 
   describe('before loading', function() {
     beforeEach(function() {
-      analytics.stub(segment, 'load');
+      analytics.stub(plainflow, 'load');
     });
 
     describe('#normalize', function() {
       var object;
 
       beforeEach(function() {
-        segment.cookie('s:context.referrer', null);
+        plainflow.cookie('pf:context.referrer', null);
         analytics.initialize();
         object = {};
       });
 
       it('should add .anonymousId', function() {
         analytics.user().anonymousId('anon-id');
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.anonymousId === 'anon-id');
       });
 
       it('should add .sentAt', function() {
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.sentAt);
         analytics.assert(type(object.sentAt) === 'date');
       });
 
       it('should add .userId', function() {
         analytics.user().id('user-id');
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.userId === 'user-id');
       });
 
       it('should not replace the .userId', function() {
         analytics.user().id('user-id');
         object.userId = 'existing-id';
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.userId === 'existing-id');
       });
 
       it('should always add .anonymousId even if .userId is given', function() {
         var object = { userId: 'baz' };
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.anonymousId.length === 36);
       });
 
       it('should add .context', function() {
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.context);
       });
 
       it('should not rewrite context if provided', function() {
         var ctx = {};
         var object = { context: ctx };
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.context === ctx);
       });
 
       it('should copy .options to .context', function() {
         var opts = {};
         var object = { options: opts };
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.context === opts);
         analytics.assert(object.options == null);
       });
 
       it('should add .writeKey', function() {
-        segment.normalize(object);
-        analytics.assert(object.writeKey === segment.options.apiKey);
+        plainflow.normalize(object);
+        analytics.assert(object.writeKey === plainflow.options.apiKey);
       });
 
       it('should add .messageId', function() {
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.messageId.length === 36);
       });
 
@@ -180,16 +182,16 @@ describe('Segment.io', function() {
         var set = {};
         var count = 1000;
         for (var i = 0; i < count; i++) {
-          var id = segment.normalize(object).messageId;
+          var id = plainflow.normalize(object).messageId;
           set[id] = true;
         }
         analytics.assert(Object.keys(set).length === count);
       });
 
       it('should add .library', function() {
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.context.library);
-        analytics.assert(object.context.library.name === 'analytics.js');
+        analytics.assert(object.context.library.name === 'pfanalytics.js');
         analytics.assert(object.context.library.version === analytics.VERSION);
       });
 
@@ -201,22 +203,22 @@ describe('Segment.io', function() {
           }
         };
         var object = { context: ctx };
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.context.library);
         analytics.assert(object.context.library.name === 'analytics-wordpress');
         analytics.assert(object.context.library.version === '1.0.3');
       });
 
       it('should add .userAgent', function() {
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object.context.userAgent === navigator.userAgent);
       });
 
       it('should add .campaign', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source&utm_medium=medium&utm_term=term&utm_content=content&utm_campaign=name';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.search = '?utm_source=source&utm_medium=medium&utm_term=term&utm_content=content&utm_campaign=name';
+        Plainflow.global.location.hostname = 'localhost';
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.campaign);
@@ -225,13 +227,13 @@ describe('Segment.io', function() {
         analytics.assert(object.context.campaign.term === 'term');
         analytics.assert(object.context.campaign.content === 'content');
         analytics.assert(object.context.campaign.name === 'name');
-        Segment.global = window;
+        Plainflow.global = window;
       });
 
       it('should allow override of .campaign', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source&utm_medium=medium&utm_term=term&utm_content=content&utm_campaign=name';
-        Segment.global.location.hostname = 'localhost';
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.search = '?utm_source=source&utm_medium=medium&utm_term=term&utm_content=content&utm_campaign=name';
+        Plainflow.global.location.hostname = 'localhost';
         var object = {
           context: {
             campaign: {
@@ -243,7 +245,7 @@ describe('Segment.io', function() {
             }
           }
         };
-        segment.normalize(object);
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.campaign);
@@ -252,95 +254,95 @@ describe('Segment.io', function() {
         analytics.assert(object.context.campaign.term === 'overrideTerm');
         analytics.assert(object.context.campaign.content === 'overrideContent');
         analytics.assert(object.context.campaign.name === 'overrideName');
-        Segment.global = window;
+        Plainflow.global = window;
       });
 
       it('should add .referrer.id and .referrer.type', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source&urid=medium';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.search = '?utm_source=source&urid=medium';
+        Plainflow.global.location.hostname = 'localhost';
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.referrer);
         analytics.assert(object.context.referrer.id === 'medium');
         analytics.assert(object.context.referrer.type === 'millennial-media');
-        Segment.global = window;
+        Plainflow.global = window;
       });
 
       it('should add .referrer.id and .referrer.type from cookie', function() {
-        segment.cookie('s:context.referrer', '{"id":"baz","type":"millennial-media"}');
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        plainflow.cookie('pf:context.referrer', '{"id":"baz","type":"millennial-media"}');
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.search = '?utm_source=source';
+        Plainflow.global.location.hostname = 'localhost';
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.referrer);
         analytics.assert(object.context.referrer.id === 'baz');
         analytics.assert(object.context.referrer.type === 'millennial-media');
-        Segment.global = window;
+        Plainflow.global = window;
       });
 
       it('should add .referrer.id and .referrer.type from cookie when no query is given', function() {
-        segment.cookie('s:context.referrer', '{"id":"medium","type":"millennial-media"}');
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        plainflow.cookie('pf:context.referrer', '{"id":"medium","type":"millennial-media"}');
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.search = '';
+        Plainflow.global.location.hostname = 'localhost';
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.referrer);
         analytics.assert(object.context.referrer.id === 'medium');
         analytics.assert(object.context.referrer.type === 'millennial-media');
-        Segment.global = window;
+        Plainflow.global = window;
       });
 
       it('should add .amp.id from store', function() {
-        segment.cookie('segment_amp_id', 'some-amp-id');
-        segment.normalize(object);
+        plainflow.cookie('plainflow_amp_id', 'some-amp-id');
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.amp);
         analytics.assert(object.context.amp.id === 'some-amp-id');
       });
 
-      it('should not add .amp if theres no segment_amp_id', function() {
-        segment.normalize(object);
+      it('should not add .amp if theres no plainflow_amp_id', function() {
+        plainflow.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(!object.context.amp);
       });
 
       describe('unbundling', function() {
-        var segment;
+        var plainflow;
 
         beforeEach(function() {
           var Analytics = analytics.constructor;
           var ajs = new Analytics();
-          segment = new Segment(options);
-          ajs.use(Segment);
+          plainflow = new Plainflow(options);
+          ajs.use(Plainflow);
           ajs.use(integration('other'));
-          ajs.add(segment);
+          ajs.add(plainflow);
           ajs.initialize({ other: {} });
         });
 
         it('should add a list of bundled integrations when `addBundledMetadata` is set', function() {
-          segment.options.addBundledMetadata = true;
-          segment.normalize(object);
+          plainflow.options.addBundledMetadata = true;
+          plainflow.normalize(object);
 
           assert(object);
           assert(object._metadata);
           assert.deepEqual(object._metadata.bundled, [
-            'Segment.io',
+            'Plainflow',
             'other'
           ]);
         });
 
         it('should add a list of unbundled integrations when `addBundledMetadata` and `unbundledIntegrations` are set', function() {
-          segment.options.addBundledMetadata = true;
-          segment.options.unbundledIntegrations = [ 'other2' ];
-          segment.normalize(object);
+          plainflow.options.addBundledMetadata = true;
+          plainflow.options.unbundledIntegrations = [ 'other2' ];
+          plainflow.normalize(object);
 
           assert(object);
           assert(object._metadata);
@@ -348,7 +350,7 @@ describe('Segment.io', function() {
         });
 
         it('should not add _metadata when `addBundledMetadata` is unset', function() {
-          segment.normalize(object);
+          plainflow.normalize(object);
 
           assert(object);
           assert(!object._metadata);
@@ -366,12 +368,12 @@ describe('Segment.io', function() {
 
     describe('#page', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'enqueue');
+        analytics.stub(plainflow, 'enqueue');
       });
 
       it('should enqueue section, name and properties', function() {
         analytics.page('section', 'name', { property: true }, { opt: true });
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/p');
         analytics.assert(args[1].name === 'name');
         analytics.assert(args[1].category === 'section');
@@ -383,12 +385,12 @@ describe('Segment.io', function() {
 
     describe('#identify', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'enqueue');
+        analytics.stub(plainflow, 'enqueue');
       });
 
       it('should enqueue an id and traits', function() {
         analytics.identify('id', { trait: true }, { opt: true });
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/i');
         analytics.assert(args[1].userId === 'id');
         analytics.assert(args[1].traits.trait === true);
@@ -399,12 +401,12 @@ describe('Segment.io', function() {
 
     describe('#track', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'enqueue');
+        analytics.stub(plainflow, 'enqueue');
       });
 
       it('should enqueue an event and properties', function() {
         analytics.track('event', { prop: true }, { opt: true });
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/t');
         analytics.assert(args[1].event === 'event');
         analytics.assert(args[1].context.opt === true);
@@ -416,12 +418,12 @@ describe('Segment.io', function() {
 
     describe('#group', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'enqueue');
+        analytics.stub(plainflow, 'enqueue');
       });
 
       it('should enqueue groupId and traits', function() {
         analytics.group('id', { trait: true }, { opt: true });
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/g');
         analytics.assert(args[1].groupId === 'id');
         analytics.assert(args[1].context.opt === true);
@@ -432,12 +434,12 @@ describe('Segment.io', function() {
 
     describe('#alias', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'enqueue');
+        analytics.stub(plainflow, 'enqueue');
       });
 
       it('should enqueue .userId and .previousId', function() {
         analytics.alias('to', 'from');
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId === 'from');
         analytics.assert(args[1].userId === 'to');
@@ -447,7 +449,7 @@ describe('Segment.io', function() {
       it('should fallback to user.anonymousId if .previousId is omitted', function() {
         analytics.user().anonymousId('anon-id');
         analytics.alias('to');
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId === 'anon-id');
         analytics.assert(args[1].userId === 'to');
@@ -456,7 +458,7 @@ describe('Segment.io', function() {
 
       it('should fallback to user.anonymousId if .previousId and user.id are falsey', function() {
         analytics.alias('to');
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId);
         analytics.assert(args[1].previousId.length === 36);
@@ -465,7 +467,7 @@ describe('Segment.io', function() {
 
       it('should rename `.from` and `.to` to `.previousId` and `.userId`', function() {
         analytics.alias('user-id', 'previous-id');
-        var args = segment.enqueue.args[0];
+        var args = plainflow.enqueue.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId === 'previous-id');
         analytics.assert(args[1].userId === 'user-id');
@@ -476,7 +478,7 @@ describe('Segment.io', function() {
 
     describe('#enqueue', function() {
       beforeEach(function() {
-        analytics.spy(segment, 'session');
+        analytics.spy(plainflow, 'session');
       });
 
       it('should use https: protocol when http:', sinon.test(function() {
@@ -485,11 +487,11 @@ describe('Segment.io', function() {
         xhr.onCreate = spy;
 
         protocol('http:');
-        segment.enqueue('/i', { userId: 'id' });
+        plainflow.enqueue('/i', { userId: 'id' });
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
-        assert.strictEqual(req.url, 'https://api.segment.io/v1/i');
+        assert.strictEqual(req.url, 'https://pipe.plainflow.net/v1/i');
       }));
 
       it('should use https: protocol when https:', sinon.test(function() {
@@ -498,11 +500,11 @@ describe('Segment.io', function() {
         xhr.onCreate = spy;
 
         protocol('https:');
-        segment.enqueue('/i', { userId: 'id' });
+        plainflow.enqueue('/i', { userId: 'id' });
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
-        assert.strictEqual(req.url, 'https://api.segment.io/v1/i');
+        assert.strictEqual(req.url, 'https://pipe.plainflow.net/v1/i');
       }));
 
       it('should use https: protocol when https:', sinon.test(function() {
@@ -511,11 +513,11 @@ describe('Segment.io', function() {
         xhr.onCreate = spy;
 
         protocol('file:');
-        segment.enqueue('/i', { userId: 'id' });
+        plainflow.enqueue('/i', { userId: 'id' });
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
-        assert.strictEqual(req.url, 'https://api.segment.io/v1/i');
+        assert.strictEqual(req.url, 'https://pipe.plainflow.net/v1/i');
       }));
 
       it('should use https: protocol when chrome-extension:', sinon.test(function() {
@@ -524,35 +526,35 @@ describe('Segment.io', function() {
         xhr.onCreate = spy;
 
         protocol('chrome-extension:');
-        segment.enqueue('/i', { userId: 'id' });
+        plainflow.enqueue('/i', { userId: 'id' });
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
-        assert.strictEqual(req.url, 'https://api.segment.io/v1/i');
+        assert.strictEqual(req.url, 'https://pipe.plainflow.net/v1/i');
       }));
 
-      it('should enqueue to `api.segment.io/v1` by default', sinon.test(function() {
+      it('should enqueue to `pipe.plainflow.net/v1` by default', sinon.test(function() {
         var xhr = sinon.useFakeXMLHttpRequest();
         var spy = sinon.spy();
         xhr.onCreate = spy;
 
         protocol('https:');
-        segment.enqueue('/i', { userId: 'id' });
+        plainflow.enqueue('/i', { userId: 'id' });
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
-        assert.strictEqual(req.url, 'https://api.segment.io/v1/i');
+        assert.strictEqual(req.url, 'https://pipe.plainflow.net/v1/i');
       }));
 
       it('should enqueue to `options.apiHost` when set', sinon.test(function() {
-        segment.options.apiHost = 'api.example.com';
+        plainflow.options.apiHost = 'api.example.com';
 
         var xhr = sinon.useFakeXMLHttpRequest();
         var spy = sinon.spy();
         xhr.onCreate = spy;
 
         protocol('https:');
-        segment.enqueue('/i', { userId: 'id' });
+        plainflow.enqueue('/i', { userId: 'id' });
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
@@ -569,9 +571,9 @@ describe('Segment.io', function() {
           key2: 'value2'
         };
 
-        segment.normalize = function() { return payload; };
+        plainflow.normalize = function() { return payload; };
 
-        segment.enqueue('/i', {});
+        plainflow.enqueue('/i', {});
 
         assert(spy.calledOnce);
         var req = spy.getCall(0).args[0];
@@ -583,12 +585,12 @@ describe('Segment.io', function() {
     // FIXME(ndhoule): See note at `isPhantomJS` definition
     (isPhantomJS ? xdescribe : describe)('e2e tests — without queueing', function() {
       beforeEach(function() {
-        segment.options.retryQueue = false;
+        plainflow.options.retryQueue = false;
       });
 
       describe('/g', function() {
         it('should succeed', function(done) {
-          segment.enqueue('/g', { groupId: 'gid', userId: 'uid' }, function(err, res) {
+          plainflow.enqueue('/g', { groupId: 'gid', userId: 'uid' }, function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
@@ -599,7 +601,7 @@ describe('Segment.io', function() {
       describe('/p', function() {
         it('should succeed', function(done) {
           var data = { userId: 'id', name: 'page', properties: {} };
-          segment.enqueue('/p', data, function(err, res) {
+          plainflow.enqueue('/p', data, function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
@@ -610,7 +612,7 @@ describe('Segment.io', function() {
       describe('/a', function() {
         it('should succeed', function(done) {
           var data = { userId: 'id', from: 'b', to: 'a' };
-          segment.enqueue('/a', data, function(err, res) {
+          plainflow.enqueue('/a', data, function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
@@ -622,7 +624,7 @@ describe('Segment.io', function() {
         it('should succeed', function(done) {
           var data = { userId: 'id', event: 'my-event', properties: {} };
 
-          segment.enqueue('/t', data, function(err, res) {
+          plainflow.enqueue('/t', data, function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
@@ -634,7 +636,7 @@ describe('Segment.io', function() {
         it('should succeed', function(done) {
           var data = { userId: 'id' };
 
-          segment.enqueue('/i', data, function(err, res) {
+          plainflow.enqueue('/i', data, function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
@@ -645,97 +647,97 @@ describe('Segment.io', function() {
 
     (isPhantomJS ? xdescribe : describe)('e2e tests — with queueing', function() {
       beforeEach(function() {
-        segment.options.retryQueue = true;
+        plainflow.options.retryQueue = true;
         analytics.initialize();
       });
 
       describe('/g', function() {
         it('should succeed', function(done) {
-          segment._lsqueue.on('processed', function(err, res) {
+          plainflow._lsqueue.on('processed', function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
           });
-          segment.enqueue('/g', { groupId: 'gid', userId: 'uid' });
+          plainflow.enqueue('/g', { groupId: 'gid', userId: 'uid' });
         });
       });
 
       describe('/p', function() {
         it('should succeed', function(done) {
-          segment._lsqueue.on('processed', function(err, res) {
+          plainflow._lsqueue.on('processed', function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
           });
-          segment.enqueue('/p', { userId: 'id', name: 'page', properties: {} });
+          plainflow.enqueue('/p', { userId: 'id', name: 'page', properties: {} });
         });
       });
 
       describe('/a', function() {
         it('should succeed', function(done) {
-          segment._lsqueue.on('processed', function(err, res) {
+          plainflow._lsqueue.on('processed', function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
           });
-          segment.enqueue('/a', { userId: 'id', from: 'b', to: 'a' });
+          plainflow.enqueue('/a', { userId: 'id', from: 'b', to: 'a' });
         });
       });
 
       describe('/t', function() {
         it('should succeed', function(done) {
-          segment._lsqueue.on('processed', function(err, res) {
+          plainflow._lsqueue.on('processed', function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
           });
-          segment.enqueue('/t', { userId: 'id', event: 'my-event', properties: {} });
+          plainflow.enqueue('/t', { userId: 'id', event: 'my-event', properties: {} });
         });
       });
 
       describe('/i', function() {
         it('should succeed', function(done) {
-          segment._lsqueue.on('processed', function(err, res) {
+          plainflow._lsqueue.on('processed', function(err, res) {
             if (err) return done(err);
             analytics.assert(JSON.parse(res.responseText).success);
             done();
           });
-          segment.enqueue('/i', { userId: 'id' });
+          plainflow.enqueue('/i', { userId: 'id' });
         });
       });
     });
 
     describe('#cookie', function() {
       beforeEach(function() {
-        segment.cookie('foo', null);
+        plainflow.cookie('foo', null);
       });
 
       it('should persist the cookie even when the hostname is "dev"', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.href = 'https://dev:300/path';
-        analytics.assert(segment.cookie('foo') == null);
-        segment.cookie('foo', 'bar');
-        analytics.assert(segment.cookie('foo') === 'bar');
-        Segment.global = window;
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.href = 'https://dev:300/path';
+        analytics.assert(plainflow.cookie('foo') == null);
+        plainflow.cookie('foo', 'bar');
+        analytics.assert(plainflow.cookie('foo') === 'bar');
+        Plainflow.global = window;
       });
 
       it('should persist the cookie even when the hostname is "127.0.0.1"', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.href = 'http://127.0.0.1:3000/';
-        analytics.assert(segment.cookie('foo') == null);
-        segment.cookie('foo', 'bar');
-        analytics.assert(segment.cookie('foo') === 'bar');
-        Segment.global = window;
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.href = 'http://127.0.0.1:3000/';
+        analytics.assert(plainflow.cookie('foo') == null);
+        plainflow.cookie('foo', 'bar');
+        analytics.assert(plainflow.cookie('foo') === 'bar');
+        Plainflow.global = window;
       });
 
       it('should persist the cookie even when the hostname is "app.herokuapp.com"', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.href = 'https://app.herokuapp.com/about';
-        Segment.global.location.hostname = 'app.herokuapp.com';
-        analytics.assert(segment.cookie('foo') == null);
-        segment.cookie('foo', 'bar');
-        analytics.assert(segment.cookie('foo') === 'bar');
-        Segment.global = window;
+        Plainflow.global = { navigator: {}, location: {} };
+        Plainflow.global.location.href = 'https://app.herokuapp.com/about';
+        Plainflow.global.location.hostname = 'app.herokuapp.com';
+        analytics.assert(plainflow.cookie('foo') == null);
+        plainflow.cookie('foo', 'bar');
+        analytics.assert(plainflow.cookie('foo') === 'bar');
+        Plainflow.global = window;
       });
     });
 
@@ -744,32 +746,24 @@ describe('Segment.io', function() {
 
       beforeEach(function() {
         server = sinon.fakeServer.create();
-        segment.options.crossDomainIdServers = [
+        plainflow.options.crossDomainIdServers = [
           'userdata.example1.com',
           'xid.domain2.com',
           'localhost'
         ];
-        analytics.stub(segment, 'onidentify');
+        analytics.stub(plainflow, 'onidentify');
       });
 
       afterEach(function() {
         server.restore();
       });
 
-      it('should migrate cookies from old to new name', function() {
-        segment.cookie('segment_cross_domain_id', 'xid-test-1');
-        segment.initialize();
-
-        analytics.assert(segment.cookie('segment_cross_domain_id') == null);
-        analytics.assert(segment.cookie('seg_xid') === 'xid-test-1');
-      });
-
       it('should not crash with invalid config', function() {
-        segment.options.crossDomainIdServers = undefined;
+        plainflow.options.crossDomainIdServers = undefined;
 
         var res = null;
         var err = null;
-        segment.retrieveCrossDomainId(function(error, response) {
+        plainflow.retrieveCrossDomainId(function(error, response) {
           res = response;
           err = error;
         });
@@ -779,16 +773,16 @@ describe('Segment.io', function() {
       });
 
       it('should generate xid locally if there is only one (current hostname) server', function() {
-        segment.options.crossDomainIdServers = [
+        plainflow.options.crossDomainIdServers = [
           'localhost'
         ];
 
         var res = null;
-        segment.retrieveCrossDomainId(function(err, response) {
+        plainflow.retrieveCrossDomainId(function(err, response) {
           res = response;
         });
 
-        var identify = segment.onidentify.args[0];
+        var identify = plainflow.onidentify.args[0];
         var crossDomainId = identify[0].traits().crossDomainId;
         analytics.assert(crossDomainId);
 
@@ -798,17 +792,17 @@ describe('Segment.io', function() {
 
       it('should obtain crossDomainId', function() {
         var res = null;
-        segment.retrieveCrossDomainId(function(err, response) {
+        plainflow.retrieveCrossDomainId(function(err, response) {
           res = response;
         });
-        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + plainflow.options.apiKey, [
           200,
           { 'Content-Type': 'application/json' },
           '{ "id": "xdomain-id-1" }'
         ]);
         server.respond();
 
-        var identify = segment.onidentify.args[0];
+        var identify = plainflow.onidentify.args[0];
         analytics.assert(identify[0].traits().crossDomainId === 'xdomain-id-1');
 
         analytics.assert(res.crossDomainId === 'xdomain-id-1');
@@ -817,23 +811,23 @@ describe('Segment.io', function() {
 
       it('should generate crossDomainId if no server has it', function() {
         var res = null;
-        segment.retrieveCrossDomainId(function(err, response) {
+        plainflow.retrieveCrossDomainId(function(err, response) {
           res = response;
         });
 
-        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + plainflow.options.apiKey, [
           200,
           { 'Content-Type': 'application/json' },
           '{ "id": null }'
         ]);
-        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + plainflow.options.apiKey, [
           200,
           { 'Content-Type': 'application/json' },
           '{ "id": null }'
         ]);
         server.respond();
 
-        var identify = segment.onidentify.args[0];
+        var identify = plainflow.onidentify.args[0];
         var crossDomainId = identify[0].traits().crossDomainId;
         analytics.assert(crossDomainId);
 
@@ -844,24 +838,24 @@ describe('Segment.io', function() {
       it('should bail if all servers error', function() {
         var err = null;
         var res = null;
-        segment.retrieveCrossDomainId(function(error, response) {
+        plainflow.retrieveCrossDomainId(function(error, response) {
           err = error;
           res = response;
         });
 
-        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + plainflow.options.apiKey, [
           500,
           { 'Content-Type': 'application/json' },
           ''
         ]);
-        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + plainflow.options.apiKey, [
           500,
           { 'Content-Type': 'application/json' },
           ''
         ]);
         server.respond();
 
-        var identify = segment.onidentify.args[0];
+        var identify = plainflow.onidentify.args[0];
         analytics.assert(!identify);
         analytics.assert(!res);
         analytics.assert(err === 'Internal Server Error');
@@ -870,24 +864,24 @@ describe('Segment.io', function() {
       it('should bail if some servers fail and others have no xid', function() {
         var err = null;
         var res = null;
-        segment.retrieveCrossDomainId(function(error, response) {
+        plainflow.retrieveCrossDomainId(function(error, response) {
           err = error;
           res = response;
         });
 
-        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + plainflow.options.apiKey, [
           400,
           { 'Content-Type': 'application/json' },
           ''
         ]);
-        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + plainflow.options.apiKey, [
           200,
           { 'Content-Type': 'application/json' },
           '{ "id": null }'
         ]);
         server.respond();
 
-        var identify = segment.onidentify.args[0];
+        var identify = plainflow.onidentify.args[0];
         analytics.assert(!identify);
         analytics.assert(!res);
         analytics.assert(err === 'Bad Request');
@@ -896,24 +890,24 @@ describe('Segment.io', function() {
       it('should succeed even if one server fails', function() {
         var err = null;
         var res = null;
-        segment.retrieveCrossDomainId(function(error, response) {
+        plainflow.retrieveCrossDomainId(function(error, response) {
           err = error;
           res = response;
         });
 
-        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://xid.domain2.com/v1/id/' + plainflow.options.apiKey, [
           500,
           { 'Content-Type': 'application/json' },
           ''
         ]);
-        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + segment.options.apiKey, [
+        server.respondWith('GET', 'https://userdata.example1.com/v1/id/' + plainflow.options.apiKey, [
           200,
           { 'Content-Type': 'application/json' },
           '{ "id": "xidxid" }'
         ]);
         server.respond();
 
-        var identify = segment.onidentify.args[0];
+        var identify = plainflow.onidentify.args[0];
         analytics.assert(identify[0].traits().crossDomainId === 'xidxid');
 
         analytics.assert(res.crossDomainId === 'xidxid');
@@ -929,18 +923,18 @@ describe('Segment.io', function() {
         window.localStorage.clear();
       }
       analytics.once('ready', done);
-      segment.options.retryQueue = true;
+      plainflow.options.retryQueue = true;
       analytics.initialize();
     });
 
     afterEach(function() {
-      segment._lsqueue.stop();
+      plainflow._lsqueue.stop();
     });
 
     it('#enqueue should add to the retry queue', function() {
-      analytics.stub(segment._lsqueue, 'addItem');
-      segment.enqueue('/i', { userId: '1' });
-      assert(segment._lsqueue.addItem.calledOnce);
+      analytics.stub(plainflow._lsqueue, 'addItem');
+      plainflow.enqueue('/i', { userId: '1' });
+      assert(plainflow._lsqueue.addItem.calledOnce);
     });
 
     it('should send requests', function() {
@@ -948,7 +942,7 @@ describe('Segment.io', function() {
       var spy = sinon.spy();
       xhr.onCreate = spy;
 
-      segment.enqueue('/i', { userId: '1' });
+      plainflow.enqueue('/i', { userId: '1' });
 
       assert(spy.calledOnce);
       var req = spy.getCall(0).args[0];

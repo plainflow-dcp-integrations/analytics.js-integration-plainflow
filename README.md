@@ -1,12 +1,12 @@
-# analytics.js-integration-segmentio [![Build Status][ci-badge]][ci-link]
+# analytics.js-integration-plainflow [![Build Status][ci-badge]][ci-link]
 
-Segmentio integration for [Analytics.js][].
+Plainflow integration for [PfAnalytics.js][].
 
 ## License
 
 Released under the [MIT license](LICENSE).
 
 
-[Analytics.js]: https://segment.com/docs/libraries/analytics.js/
-[ci-link]: https://circleci.com/gh/segment-integrations/analytics.js-integration-segmentio
-[ci-badge]: https://circleci.com/gh/segment-integrations/analytics.js-integration-segmentio.svg?style=svg
+[PfAnalytics.js]: https://plainflow.com/docs/developers/sdk/pfanalytics.js
+[ci-link]: https://circleci.com/gh/plainflow-dcp-integrations/analytics.js-integration-plainflow
+[ci-badge]: https://circleci.com/gh/plainflow-dcp-integrations/analytics.js-integration-plainflow.svg?style=svg

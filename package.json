@@ -1,12 +1,13 @@
 {
-  "name": "@segment/analytics.js-integration-segmentio",
-  "description": "The Segmentio analytics.js integration.",
+  "name": "@plainflow-dcp-integrations/analytics.js-integration-plainflow",
+  "author": "Plainflow <friends@plainflow.com>",
+  "description": "The Plainflow pfanalytics.js integration.",
   "version": "3.5.4",
   "keywords": [
-    "analytics.js",
-    "analytics.js-integration",
-    "segment",
-    "segmentio"
+    "pfanalytics.js",
+    "pfanalytics.js-integration",
+    "plainflow",
+    "plainflow.com"
   ],
   "main": "lib/index.js",
   "scripts": {
@@ -14,14 +15,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/segment-integrations/analytics.js-integration-segmentio.git"
+    "url": "git+https://github.com/plainflow-dcp-integrations/analytics.js-integration-plainflow.git"
   },
-  "author": "Segment <friends@segment.com>",
   "license": "SEE LICENSE IN LICENSE",
   "bugs": {
-    "url": "https://github.com/segment-integrations/analytics.js-integration-segmentio/issues"
+    "url": "https://github.com/plainflow-dcp-integrations/analytics.js-integration-plainflow/issues"
   },
-  "homepage": "https://github.com/segment-integrations/analytics.js-integration-segmentio#readme",
+  "homepage": "https://github.com/plainflow-dcp-integrations/analytics.js-integration-plainflow#readme",
   "dependencies": {
     "@ndhoule/extend": "^2.0.0",
     "@ndhoule/keys": "^2.0.0",
@@ -41,7 +41,7 @@
     "yields-store": "^1.0.2"
   },
   "devDependencies": {
-    "@segment/analytics.js-core": "^3.0.0",
+    "@plainflow-dcp/analytics.js-core": "^3.0.0",
     "@segment/analytics.js-integration-tester": "^2.0.0",
     "@segment/clear-env": "^2.0.0",
     "@segment/eslint-config": "^3.1.1",

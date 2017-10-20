@@ -5,7 +5,7 @@ machine:
     NPM_CONFIG_PROGRESS: false
     NPM_CONFIG_SPIN: false
     SAUCE_ACCESS_KEY: 80dcffc2-c9a2-45e2-9fb7-87b29a6cd986
-    SAUCE_USERNAME: segment-oss
+    SAUCE_USERNAME: plainflow
     TEST_REPORTS_DIR: $CIRCLE_TEST_REPORTS
 
 dependencies:
@@ -24,7 +24,7 @@ test:
 
 deployment:
   publish:
-    owner: segment-integrations
+    owner: plainflow-dcp-integrations
     # Works on e.g. `1.0.0-alpha.1`
     tag: /[0-9]+(\.[0-9]+)*(-.+)?/
     commands:
