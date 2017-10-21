@@ -2,7 +2,7 @@
   "name": "@plainflow-dcp-integrations/analytics.js-integration-plainflow",
   "author": "Plainflow <friends@plainflow.com>",
   "description": "The Plainflow pfanalytics.js integration.",
-  "version": "3.5.4",
+  "version": "3.5.4-p1",
   "keywords": [
     "pfanalytics.js",
     "pfanalytics.js-integration",
