@@ -1,5 +1,5 @@
 {
-  "name": "@plainflow-dcp-integrations/analytics.js-integration-plainflow",
+  "name": "@plainflow-dcp-integrations/plainflow.js-integration-plainflow",
   "author": "Plainflow <friends@plainflow.com>",
   "description": "The Plainflow integration for the Plainflow.js tracker.",
   "version": "3.5.4-p2",
@@ -16,13 +16,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/plainflow-dcp-integrations/analytics.js-integration-plainflow.git"
+    "url": "git+https://github.com/plainflow-dcp-integrations/plainflow.js-integration-plainflow.git"
   },
   "license": "SEE LICENSE IN LICENSE",
   "bugs": {
-    "url": "https://github.com/plainflow-dcp-integrations/analytics.js-integration-plainflow/issues"
+    "url": "https://github.com/plainflow-dcp-integrations/plainflow.js-integration-plainflow/issues"
   },
-  "homepage": "https://github.com/plainflow-dcp-integrations/analytics.js-integration-plainflow#readme",
+  "homepage": "https://github.com/plainflow-dcp-integrations/plainflow.js-integration-plainflow#readme",
   "dependencies": {
     "@ndhoule/extend": "^2.0.0",
     "@ndhoule/keys": "^2.0.0",
