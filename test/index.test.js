@@ -1,6 +1,6 @@
 'use strict';
 
-var Analytics = require('@plainflow-dcp/analytics.js-core').constructor;
+var Analytics = require('@plainflow-dcp/plainflow.js-core').constructor;
 var JSON = require('json3');
 var Plainflow = require('../lib/');
 var assert = require('proclaim');
