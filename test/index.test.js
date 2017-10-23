@@ -191,7 +191,7 @@ describe('Plainflow', function() {
       it('should add .library', function() {
         plainflow.normalize(object);
         analytics.assert(object.context.library);
-        analytics.assert(object.context.library.name === 'pfanalytics.js');
+        analytics.assert(object.context.library.name === 'plainflow.js');
         analytics.assert(object.context.library.version === analytics.VERSION);
       });
 
